@@ -14,7 +14,6 @@ fun createRoomDatabase(context: Context): NetworkMonitorDB {
     val appContext = context.applicationContext
     val dbFile = appContext.getDatabasePath(NetworkMonitorDB.DATABASE_FILE_NAME)
     return Room.databaseBuilder<NetworkMonitorDB>(appContext, dbFile.absolutePath)
-        //.setDriver(BundledSQLiteDriver())
         .setDriver(AndroidSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
         .build()

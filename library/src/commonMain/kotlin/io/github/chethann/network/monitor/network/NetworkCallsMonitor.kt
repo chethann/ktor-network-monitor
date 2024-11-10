@@ -1,3 +1,5 @@
+@file:OptIn(InternalAPI::class)
+
 package io.github.chethann.network.monitor.network
 
 import io.github.chethann.network.monitor.db.DBInstanceProvider
@@ -11,21 +13,22 @@ import io.ktor.client.plugins.observer.ResponseHandler
 import io.ktor.client.plugins.observer.ResponseObserver
 import io.ktor.client.request.HttpRequest
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.HttpResponseData
 import io.ktor.client.request.HttpSendPipeline
+import io.ktor.client.statement.DefaultHttpResponse
 import io.ktor.client.statement.HttpReceivePipeline
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.HttpResponsePipeline
+import io.ktor.client.statement.content
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.Url
 import io.ktor.http.charset
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
 import io.ktor.http.encodedPath
 import io.ktor.util.AttributeKey
-import io.ktor.util.InternalAPI
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.charsets.Charsets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -37,7 +40,7 @@ import kotlinx.datetime.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-private val UUID_KEY = AttributeKey<String>("UUID_KEY")
+private val UUID_KEY = AttributeKey<String>("NETWORK_UUID_KEY")
 
 @OptIn(ExperimentalUuidApi::class)
 class NetworkCallsMonitor private constructor() {
@@ -87,19 +90,15 @@ class NetworkCallsMonitor private constructor() {
         val content = request.body as OutgoingContent
 
         val message = buildString {
-            appendLine("REQUEST: ${Url(request.url)}")
-            appendLine("METHOD: ${request.method}")
-
-            appendLine("COMMON HEADERS")
             logHeaders(request.headers.entries())
-
-            appendLine("CONTENT HEADERS")
+            // todo: See if we should save this info in other fields
+            /*appendLine("CONTENT HEADERS")
             content.contentLength?.let {
                 logHeader(HttpHeaders.ContentLength, it.toString())
             }
             content.contentType?.let {
                 logHeader(HttpHeaders.ContentType, it.toString())
-            }
+            }*/
             logHeaders(content.headers.entries())
         }
 
@@ -112,8 +111,11 @@ class NetworkCallsMonitor private constructor() {
                     id = uuid,
                     relativeUrl = request.url.encodedPath,
                     host = request.url.host,
+                    requestHeaders = message,
                     httpRequestType = request.method.value,
-                    requestTimestamp = getCurrentTime()
+                    requestTimestamp = getCurrentTime(),
+                    httpMethod = request.method.value,
+                    fullUrl = request.url.toString()
                 ))
             }
         }
@@ -131,21 +133,18 @@ class NetworkCallsMonitor private constructor() {
         uuid: String
     ): OutgoingContent {
         val requestLog = StringBuilder()
-        requestLog.appendLine("BODY Content-Type: ${content.contentType}")
-
         val charset = content.contentType?.charset() ?: Charsets.UTF_8
 
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {
             val text = channel.tryReadText(charset) ?: "[request body omitted]"
-            requestLog.appendLine("BODY START")
             requestLog.appendLine(text)
-            requestLog.append("BODY END")
         }.invokeOnCompletion {
             logToDB {
                 database.getNetworkCallDao().updateNetworkCall(NetworkRequestBody(
                     id = uuid,
-                    requestBody = requestLog.toString()
+                    requestBody = requestLog.toString(),
+                    requestContentType = content.contentType?.contentType
                 ))
             }
         }
@@ -164,7 +163,6 @@ class NetworkCallsMonitor private constructor() {
     }
 
 
-    @OptIn(InternalAPI::class)
     private fun setupResponseLogging(client: HttpClient) {
         client.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
             val uuid = response.call.attributes.getOrNull(UUID_KEY) ?: return@intercept
@@ -200,13 +198,13 @@ class NetworkCallsMonitor private constructor() {
             val responseCode = it.call.response.status.value
             val log = StringBuilder()
             try {
-                logResponseBody(log, it.contentType(), it.content, uuid, responseCode)
+                logResponseBody(log, it.contentType(), it, uuid, responseCode)
             } catch (cause: Throwable) {
                 logResponseException(cause.message ?: "Failed", uuid)
             }
         }
 
-        ResponseObserver.install(ResponseObserver(observer), client)
+        ResponseObserver.install(ResponseObserver.prepare { onResponse(observer); }, client)
     }
 
     private fun logResponseHeader(
@@ -215,11 +213,6 @@ class NetworkCallsMonitor private constructor() {
         uuid: String
     ) {
         with(log) {
-            appendLine("RESPONSE: ${response.status}")
-            appendLine("METHOD: ${response.call.request.method}")
-            appendLine("FROM: ${response.call.request.url}")
-
-            appendLine("COMMON HEADERS")
             logHeaders(response.headers.entries())
 
             logToDB {
@@ -243,23 +236,21 @@ class NetworkCallsMonitor private constructor() {
     private suspend fun logResponseBody(
         log: StringBuilder,
         contentType: ContentType?,
-        content: ByteReadChannel,
+        response: HttpResponse,
         uuid: String,
         responseCode: Int
     ) {
         with(log) {
             appendLine("BODY Content-Type: $contentType")
-            appendLine("BODY START")
-
-            val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
-            appendLine(message)
-            append("BODY END")
-
+            val responseText = response.content.tryReadText(contentType?.charset() ?: Charsets.UTF_8)
+            appendLine(responseText ?: "[response body omitted]")
+            val responseLength = responseText?.length ?: 0
             logToDB {
                 database.getNetworkCallDao().updateNetworkCall(NetworkResponseBody(
                     id = uuid,
                     responseBody = log.toString(),
-                    responseSize = getFormattedResponseSize(content.totalBytesRead),
+                    responseSize = getFormattedResponseSize(responseLength),
+                    //responseSize = "",
                     responseTimestamp = getCurrentTime(),
                     status = responseCode,
                     isSuccess = responseCode in 200..299
@@ -299,17 +290,26 @@ class NetworkCallsMonitor private constructor() {
         }
     }
 
-    private fun calculateResponseSize(byteArray: ByteArray): String {
-        val sizeInBytes = byteArray.size // size in bytes
-        return getFormattedResponseSize(sizeInBytes * 1L)
-    }
-
-    private fun getFormattedResponseSize(sizeInBytes: Long): String {
+    private fun getFormattedResponseSize(sizeInBytes: Int): String {
         val sizeInKB = sizeInBytes / 1024.0 // size in kilobytes (1 KB = 1024 bytes)
 
         if (sizeInBytes < 1024.0) {
             return "$sizeInBytes Bytes"
         }
         return "$sizeInKB KB"
+    }
+
+    // This function returns a copy of original response as reading of response is allowed only once
+    private fun getDefaultHttpResponse(httpResponse: HttpResponse, byteReadChannel: ByteReadChannel): DefaultHttpResponse {
+        return DefaultHttpResponse(
+            call = httpResponse.call,
+            HttpResponseData(
+                requestTime = httpResponse.requestTime,
+                statusCode = httpResponse.status,
+                version = httpResponse.version,
+                headers = httpResponse.headers,
+                body = byteReadChannel,
+                callContext = httpResponse.coroutineContext)
+        )
     }
 }

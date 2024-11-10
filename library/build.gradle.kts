@@ -1,6 +1,5 @@
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -13,18 +12,24 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
+println("Signing Key ID: ${project.findProperty("signing.keyId")}")
+println("Signing Password: ${project.findProperty("signing.password")}")
+println("Signing Secret Key Ring File: ${project.findProperty("signing.secretKeyRingFile")}")
+println("mavenCentralUsername: ${project.findProperty("mavenCentralUsername")}")
+println("mavenCentralPassword: ${project.findProperty("mavenCentralPassword")}")
+
 mavenPublishing {
     coordinates(
         groupId = "io.github.chethann",
         artifactId = "network-monitor",
-        version = "0.0.1-alpha1"
+        version = "0.0.1-alpha3"
     )
 
     pom {
         name.set("Ktor Network call Monitor Client for KMP")
         description.set("Ktor Network call Monitor Client for KMP. This is inspired by libraries like Chuck which are there only for Android")
         inceptionYear.set("2024")
-        url.set("")
+        url.set("https://github.com/chethann/ktor-network-monitor")
 
         licenses {
             license {
@@ -40,6 +45,10 @@ mavenPublishing {
                 email.set("chethann12793@gmail.com")
             }
         }
+
+        scm {
+            url.set("https://github.com/chethann/ktor-network-monitor")
+        }
     }
 
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
@@ -51,8 +60,9 @@ mavenPublishing {
 
 kotlin {
 
+    android()
     jvm()
-
+    targetHierarchy.default()
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -126,7 +136,6 @@ android {
 dependencies {
     add("kspAndroid", libs.room.compiler)
     add("kspJvm", libs.room.compiler)
-    //add("kspCommonMainMetadata", libs.room.compiler)
 
     add("kspIosSimulatorArm64", libs.room.compiler)
     add("kspIosX64", libs.room.compiler)

@@ -1,9 +1,21 @@
 package io.github.chethann.network.monitor
 
 object NetworkMonitorInitializer {
-    var context: Any? = null
+    internal var context: Any? = null
+    internal var bdDirectory: String? = null
+    internal var appName: String? = null
 
-    fun init(context: Any? = null) {
-        this.context = context
+    fun init(build: Builder.() -> Unit) {
+        val builder = Builder().apply(build)
+        this.context = builder.context
+        this.bdDirectory = builder.bdDirectory
+        this.appName = builder.appName
+    }
+
+    class Builder {
+        var context: Any? = null
+        var bdDirectory: String? = null
+        var appName: String? = null
     }
 }
+

@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -111,7 +112,11 @@ fun NetworkCallsList(networkCalls: List<NetworkCallEntity>, lazyListState: LazyL
             AnimatedPane {
                 // Show the detail pane content if selected item is available
                 navigator.currentDestination?.content?.let {
-                    NetworkCallDetails(it)
+                    NetworkCallDetails(it, onBackPress = {
+                        if (navigator.canNavigateBack()) {
+                            navigator.navigateBack()
+                        }
+                    })
                 }
             }
         },
@@ -193,48 +198,66 @@ private fun NetworkCallListItem(item: NetworkCallEntity, onItemClick: (NetworkCa
 }
 
 @Composable
-fun NetworkCallDetails(item: NetworkCallEntity) {
+fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.onPrimary).verticalScroll(
         rememberScrollState()
     )) {
 
+        Button(
+            onClick = onBackPress
+        ) {
+            Text("Back")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text("Url:", fontWeight = FontWeight.Bold)
+        SelectionContainer {
+            Text(item.fullUrl)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("HttpMethod:", fontWeight = FontWeight.Bold)
+        SelectionContainer {
+            Text(item.httpMethod)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Request headers", fontWeight = FontWeight.Bold)
+        SelectionContainer {
+            Text("${item.requestHeaders}")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Request body", fontWeight = FontWeight.Bold)
+        SelectionContainer {
+            Text("${item.requestBody}")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
         item.responseSummary?.let {
-            Text("Request summary: \n $it")
+            Text("Request summary", fontWeight = FontWeight.Bold)
+            Text(it)
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
+        Text("Response code", fontWeight = FontWeight.Bold)
+        Text("${item.status}")
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Response headers", fontWeight = FontWeight.Bold)
         SelectionContainer {
-            Text("Request headers: \n ${item.requestHeaders}")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SelectionContainer {
-            Text("Request body: \n ${item.requestBody}")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Response code: ${item.status}")
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Time taken code: ${item.responseTimestamp - item.requestTimestamp} ms")
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Response Size: ${item.responseSize}")
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SelectionContainer {
-            Text("Response headers: \n ${item.responseHeaders}")
+            Text("${item.responseHeaders}")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Text("Response Body", fontWeight = FontWeight.Bold)
         SelectionContainer {
-            Text("Response Body: \n ${item.responseBody}")
+            Text("${item.responseBody}")
         }
 
     }

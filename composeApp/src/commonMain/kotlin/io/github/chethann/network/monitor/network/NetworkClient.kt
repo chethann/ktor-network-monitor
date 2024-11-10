@@ -1,6 +1,10 @@
 package io.github.chethann.network.monitor.network
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 
 object NetworkClient {
     private lateinit var httpClient: HttpClient
@@ -14,11 +18,16 @@ object NetworkClient {
 }
 
 fun createHttpClient(): HttpClient {
-    return HttpClient() {
-        //install(NetworkCallsMonitorPlugin)
-        //install(Logging)
+    return HttpClient {
+        install(Logging)
         install(NetworkCallsMonitor)
-        //install(NetworkCallsMonitorPluginTwo)
-        //install(PipelineLoggingPlugin)
+
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                encodeDefaults = true
+                isLenient = true
+            })
+        }
     }
 }

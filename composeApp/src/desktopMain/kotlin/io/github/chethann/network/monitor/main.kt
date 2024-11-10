@@ -6,6 +6,11 @@ import io.github.chethann.network.monitor.view.NetworkCallsView
 
 fun main() = application {
 
+    NetworkMonitorInitializer.init {
+        appName = "MyNetworkTest"
+        bdDirectory = "${System.getProperty("java.io.tmpdir")}/db"
+    }
+
     Window(
         onCloseRequest = ::exitApplication,
         title = "KotlinProject",

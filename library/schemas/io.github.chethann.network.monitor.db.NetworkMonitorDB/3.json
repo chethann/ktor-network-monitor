@@ -2,17 +2,24 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "48a1c673b664c25219a81a724e9c465b",
+    "identityHash": "a961f2466ac1e6dced06aac90e9ffaa7",
     "entities": [
       {
         "tableName": "networkCalls",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `relativeUrl` TEXT NOT NULL DEFAULT '', `host` TEXT NOT NULL DEFAULT '', `httpRequestType` TEXT NOT NULL DEFAULT '', `responseSummary` TEXT DEFAULT '', `requestHeaders` TEXT DEFAULT '', `requestBody` TEXT DEFAULT '', `responseHeaders` TEXT DEFAULT '', `responseBody` TEXT DEFAULT '', `requestTimestamp` INTEGER NOT NULL DEFAULT 0, `readableRequestTime` TEXT NOT NULL DEFAULT '', `responseTimestamp` INTEGER NOT NULL DEFAULT 0, `status` INTEGER DEFAULT 0, `responseSize` TEXT DEFAULT '', `inProgress` INTEGER NOT NULL DEFAULT true, `isSuccess` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `fullUrl` TEXT NOT NULL DEFAULT '', `relativeUrl` TEXT NOT NULL DEFAULT '', `host` TEXT NOT NULL DEFAULT '', `httpRequestType` TEXT NOT NULL DEFAULT '', `responseSummary` TEXT DEFAULT '', `requestHeaders` TEXT DEFAULT '', `requestBody` TEXT DEFAULT '', `responseHeaders` TEXT DEFAULT '', `responseBody` TEXT DEFAULT '', `requestTimestamp` INTEGER NOT NULL DEFAULT 0, `readableRequestTime` TEXT NOT NULL DEFAULT '', `responseTimestamp` INTEGER NOT NULL DEFAULT 0, `status` INTEGER DEFAULT 0, `requestSize` TEXT DEFAULT 'requestSize', `responseSize` TEXT DEFAULT '', `requestContentType` TEXT DEFAULT 'requestContentType', `responseContentType` TEXT DEFAULT 'responseContentType', `inProgress` INTEGER NOT NULL DEFAULT true, `isSuccess` INTEGER NOT NULL DEFAULT false, `httpMethod` TEXT NOT NULL DEFAULT 'httpMethod', PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "fullUrl",
+            "columnName": "fullUrl",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "relativeUrl",
@@ -93,10 +100,28 @@
             "defaultValue": "0"
           },
           {
+            "fieldPath": "requestSize",
+            "columnName": "requestSize",
+            "affinity": "TEXT",
+            "defaultValue": "'requestSize'"
+          },
+          {
             "fieldPath": "responseSize",
             "columnName": "responseSize",
             "affinity": "TEXT",
             "defaultValue": "''"
+          },
+          {
+            "fieldPath": "requestContentType",
+            "columnName": "requestContentType",
+            "affinity": "TEXT",
+            "defaultValue": "'requestContentType'"
+          },
+          {
+            "fieldPath": "responseContentType",
+            "columnName": "responseContentType",
+            "affinity": "TEXT",
+            "defaultValue": "'responseContentType'"
           },
           {
             "fieldPath": "inProgress",
@@ -111,6 +136,13 @@
             "affinity": "INTEGER",
             "notNull": true,
             "defaultValue": "false"
+          },
+          {
+            "fieldPath": "httpMethod",
+            "columnName": "httpMethod",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'httpMethod'"
           }
         ],
         "primaryKey": {
@@ -123,7 +155,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '48a1c673b664c25219a81a724e9c465b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a961f2466ac1e6dced06aac90e9ffaa7')"
     ]
   }
 }

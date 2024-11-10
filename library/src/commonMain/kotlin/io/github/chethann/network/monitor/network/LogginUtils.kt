@@ -3,6 +3,7 @@ package io.github.chethann.network.monitor.network
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.core.readText
+import io.ktor.utils.io.readRemaining
 
 internal fun Appendable.logHeaders(
     headers: Set<Map.Entry<String, List<String>>>,
@@ -15,7 +16,7 @@ internal fun Appendable.logHeaders(
 }
 
 internal fun Appendable.logHeader(key: String, value: String) {
-    appendLine("-> $key: $value")
+    appendLine("$key: $value")
 }
 
 internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {

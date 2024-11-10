@@ -13,6 +13,9 @@ data class NetworkCallEntity(
     val id: String = "0",
 
     @ColumnInfo(defaultValue = "")
+    val fullUrl: String,
+
+    @ColumnInfo(defaultValue = "")
     val relativeUrl: String,
 
     @ColumnInfo(defaultValue = "")
@@ -48,20 +51,33 @@ data class NetworkCallEntity(
     @ColumnInfo(defaultValue = "0")
     val status: Int? = null,
 
+    @ColumnInfo(defaultValue = "requestSize")
+    val requestSize: String? = null,
+
     @ColumnInfo(defaultValue = "")
     val responseSize: String? = null,
+
+    @ColumnInfo(defaultValue = "requestContentType")
+    val requestContentType: String? = null,
+
+    @ColumnInfo(defaultValue = "responseContentType")
+    val responseContentType: String? = null,
 
     @ColumnInfo(defaultValue = "true")
     val inProgress: Boolean = true,
 
     @ColumnInfo(defaultValue = "false")
     val isSuccess: Boolean = false,
+
+    @ColumnInfo(defaultValue = "httpMethod")
+    val httpMethod: String,
 )
 
 @Serializable
 data class NetworkRequestBody(
     val id: String,
-    val requestBody: String
+    val requestBody: String,
+    val requestContentType: String? = null
 )
 
 @Serializable
@@ -79,5 +95,6 @@ data class NetworkResponseBody(
     val status: Int? = null,
     val responseSize: String? = null,
     val responseTimestamp: Long = 0L,
+    val responseContentType: String? = null,
     val inProgress: Boolean = false // Mark as not in progress anymore once the response comes back
 )

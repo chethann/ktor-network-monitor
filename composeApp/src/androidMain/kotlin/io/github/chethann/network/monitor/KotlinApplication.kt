@@ -10,6 +10,8 @@ class KotlinApplication: Application() {
     }
 
     private fun initNetworkCallLogger() {
-        NetworkMonitorInitializer.init(this)
+        NetworkMonitorInitializer.init {
+            context = this@KotlinApplication
+        }
     }
 }
