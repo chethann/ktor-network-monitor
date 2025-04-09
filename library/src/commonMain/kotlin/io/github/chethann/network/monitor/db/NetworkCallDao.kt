@@ -26,4 +26,7 @@ interface NetworkCallDao {
 
     @Update(entity = NetworkCallEntity::class)
     suspend fun updateNetworkCall(networkResponse: NetworkResponseHeaders)
+
+    @Query("DELETE FROM networkCalls")
+    suspend fun clearData()
 }

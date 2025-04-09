@@ -132,18 +132,14 @@ class NetworkCallsMonitor private constructor() {
         content: OutgoingContent,
         uuid: String
     ): OutgoingContent {
-        val requestLog = StringBuilder()
         val charset = content.contentType?.charset() ?: Charsets.UTF_8
-
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {
-            val text = channel.tryReadText(charset) ?: "[request body omitted]"
-            requestLog.appendLine(text)
         }.invokeOnCompletion {
             logToDB {
                 database.getNetworkCallDao().updateNetworkCall(NetworkRequestBody(
                     id = uuid,
-                    requestBody = requestLog.toString(),
+                    requestBody = channel.tryReadText(charset) ?: "[request body omitted]",
                     requestContentType = content.contentType?.contentType
                 ))
             }
