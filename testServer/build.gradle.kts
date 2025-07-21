@@ -4,7 +4,7 @@ val logback_version = "1.4.14"
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     id("io.ktor.plugin") version "3.0.1"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    alias(libs.plugins.kotlin.serialisation)
 }
 
 group = "example.com"

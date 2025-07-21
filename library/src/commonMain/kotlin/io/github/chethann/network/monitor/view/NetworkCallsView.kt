@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -118,7 +120,9 @@ fun NetworkCallsListFullView(networkCalls: List<NetworkCallEntity>, lazyListStat
 
     UnifiedBackHandler {
         if (navigator.canNavigateBack()) {
-            navigator.navigateBack()
+            CoroutineScope(Dispatchers.IO).launch {
+                navigator.navigateBack()
+            }
         }
     }
 
@@ -139,7 +143,9 @@ fun NetworkCallsListFullView(networkCalls: List<NetworkCallEntity>, lazyListStat
                     lazyListState,
                     onItemClick = { item ->
                         // Navigate to the detail pane with the passed item
-                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, item)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, item)
+                        }
                     },
                     onClearClick = onClearClick,
                     onRefreshClick = onRefreshClick,
@@ -150,10 +156,12 @@ fun NetworkCallsListFullView(networkCalls: List<NetworkCallEntity>, lazyListStat
         detailPane = {
             AnimatedPane {
                 // Show the detail pane content if selected item is available
-                navigator.currentDestination?.content?.let {
+                navigator.currentDestination?.contentKey?.let {
                     NetworkCallDetails(it, onBackPress = {
                         if (navigator.canNavigateBack()) {
-                            navigator.navigateBack()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                navigator.navigateBack()
+                            }
                         }
                     })
                 }
@@ -168,7 +176,9 @@ fun NetworkCallsList(networkCallEntities: List<NetworkCallEntity>, lazyListState
                      onClearClick: () -> Unit, onSearchClick: (String) -> Unit, onRefreshClick: () -> Unit) {
 
     LazyColumn(
-        state = lazyListState
+        state = lazyListState,
+        modifier = Modifier.statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         item {
             Column(
@@ -263,7 +273,10 @@ private fun NetworkCallListItem(item: NetworkCallEntity, onItemClick: (NetworkCa
 @Composable
 fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.onPrimary).verticalScroll(
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.onPrimary)
+        .statusBarsPadding()
+        .navigationBarsPadding()
+        .verticalScroll(
         rememberScrollState()
     )) {
 

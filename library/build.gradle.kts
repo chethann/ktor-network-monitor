@@ -22,7 +22,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.chethann",
         artifactId = "network-monitor",
-        version = "0.0.1-alpha4"
+        version = "0.0.2-alpha1"
     )
 
     pom {
@@ -60,13 +60,15 @@ mavenPublishing {
 
 kotlin {
 
-    android()
+    androidTarget()
     jvm()
-    targetHierarchy.default()
+    applyDefaultHierarchyTemplate()
     androidTarget {
         compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+                }
             }
         }
         publishLibraryVariants("debug", "release")
