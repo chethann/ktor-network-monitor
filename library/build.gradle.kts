@@ -98,6 +98,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.bundles.ktor)
             implementation(libs.bundles.database)
+            implementation(libs.kotlinx.serialization.json)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -109,6 +110,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.bundles.material.adaptive)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.compose.navigation)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
