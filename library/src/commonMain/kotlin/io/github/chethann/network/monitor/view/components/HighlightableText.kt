@@ -1,5 +1,6 @@
 package io.github.chethann.network.monitor.view.components
 
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,7 +17,7 @@ fun HighlightableText(
     text: String,
     searchQuery: String,
     highlightColor: Color,
-    textColor: Color = Color.Black,
+    textColor: Color = MaterialTheme.colors.onSurface,
     fontSize: TextUnit = TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
     fontFamily: FontFamily? = null,

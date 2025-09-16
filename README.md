@@ -27,6 +27,37 @@ commonMain.dependencies {
 // Make sure mavenCentral() is added in the list of repositories to resolve dependencies 
 ```
 
+### Theming
+All composable screens now rely on a unified Material theme with light/dark support and semantic colors (success, warning, info, pending, highlight, etc.).
+
+Wrap any usage of the library UI with `NetworkMonitorTheme` (import `io.github.chethann.network.monitor.view.theme.NetworkMonitorTheme`).
+
+```kotlin
+import io.github.chethann.network.monitor.view.theme.NetworkMonitorTheme
+import io.github.chethann.network.monitor.view.components.NetworkCallsListFullView
+
+@Composable
+fun NetworkMonitorContainer(calls: List<NetworkCallEntity>) {
+    NetworkMonitorTheme { // Automatically picks system dark mode
+        NetworkCallsListFullView(
+            networkCalls = calls,
+            lazyListState = rememberLazyListState(),
+            onClearClick = { /* clear */ },
+            onSearchClick = { /* search */ },
+            onRefreshClick = { /* refresh */ }
+        )
+    }
+}
+```
+
+Access extended semantic colors inside components via:
+```kotlin
+val extended = MaterialTheme.extendedColors
+Text("Status", color = extended.success)
+```
+
+If you want to provide a custom `Colors` palette you can pass it to `NetworkMonitorTheme(colors = myColors)`.
+
 Adding the plugin to Ktor
 ```kotlin
 HttpClient {

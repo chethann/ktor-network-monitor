@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,11 +21,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.chethann.network.monitor.db.NetworkCallEntity
+import io.github.chethann.network.monitor.view.theme.extendedColors
 import io.github.chethann.network.monitor.view.TimeDisplayUtils
 
-val inProgressColor = Color(0xFFF0AD4E) // Light Amber
-val successColor = Color(0xFF5CB85C)    // Light Green
-val errorColor = Color(0xFFD9534F)      // Light Red
+// Deprecated hard-coded status colors replaced by theme tokens
+private val LegacyInProgress = Color(0xFFF0AD4E)
+private val LegacySuccess = Color(0xFF5CB85C)
+private val LegacyError = Color(0xFFD9534F)
 
 @Composable
 fun EnhancedNetworkCallListItem(
@@ -33,25 +36,22 @@ fun EnhancedNetworkCallListItem(
     searchQuery: String = "",
     isHighlighted: Boolean = false
 ) {
-    val backgroundColor = if (item.inProgress) {
-        inProgressColor
-    } else {
-        if (item.isSuccess) {
-            successColor
-        } else {
-            errorColor
-        }
+    val colors = MaterialTheme.extendedColors
+    val statusColor = when {
+        item.inProgress -> colors.pending
+        item.isSuccess -> colors.success
+        else -> MaterialTheme.colors.error
     }
 
     val cardElevation = if (isHighlighted) 8.dp else 2.dp
-    val borderColor = if (isHighlighted) Color(0xFF2196F3) else Color.Transparent
+    val borderColor = if (isHighlighted) MaterialTheme.colors.primary else Color.Transparent
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .clickable { onItemClick(item) },
-        backgroundColor = Color.White,
+    backgroundColor = MaterialTheme.colors.surface,
         elevation = cardElevation,
         shape = RoundedCornerShape(8.dp),
         border = if (isHighlighted) BorderStroke(2.dp, borderColor) else null
@@ -66,7 +66,7 @@ fun EnhancedNetworkCallListItem(
             ) {
                 // Status code with background
                 Card(
-                    backgroundColor = backgroundColor,
+                    backgroundColor = statusColor,
                     shape = RoundedCornerShape(6.dp),
                     elevation = 0.dp,
                     modifier = Modifier.padding(bottom = 4.dp)
@@ -98,7 +98,7 @@ fun EnhancedNetworkCallListItem(
                     text = item.relativeUrl,
                     searchQuery = searchQuery,
                     highlightColor = Color(0xFFFFEB3B),
-                    textColor = Color(0xFF1976D2),
+                    textColor = MaterialTheme.colors.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
@@ -110,7 +110,7 @@ fun EnhancedNetworkCallListItem(
                     text = item.host,
                     searchQuery = searchQuery,
                     highlightColor = Color(0xFFFFEB3B),
-                    textColor = Color(0xFF666666),
+                    textColor = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
 
@@ -126,7 +126,7 @@ fun EnhancedNetworkCallListItem(
                         Text("🕐 ", fontSize = 10.sp)
                         Text(
                             TimeDisplayUtils.getReadableTime(item.requestTimestamp),
-                            color = Color(0xFF757575),
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                             fontSize = 10.sp
                         )
                     }
@@ -137,7 +137,7 @@ fun EnhancedNetworkCallListItem(
                             Text("📦 ", fontSize = 10.sp)
                             Text(
                                 size,
-                                color = Color(0xFF757575),
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                                 fontSize = 10.sp
                             )
                         }

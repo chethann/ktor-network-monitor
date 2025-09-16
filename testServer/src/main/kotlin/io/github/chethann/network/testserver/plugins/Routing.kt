@@ -9,28 +9,34 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.delay
 import java.io.File
 import java.util.UUID
 
 fun Application.configureRouting() {
     routing {
         get("/") {
+            delay(1000)
             call.respondText("Hello World!")
         }
 
         get("/successEndpoint") {
+            delay(1000)
             call.respond(TestData(uuid = UUID.randomUUID().toString()))
         }
 
         get("/object") {
+            delay(1000)
             call.respond(TestData(uuid = UUID.randomUUID().toString()))
         }
 
         get("/errorEndpoint") {
+            delay(1000)
             call.respond(HttpStatusCode.Forbidden, TestData(uuid = UUID.randomUUID().toString()))
         }
 
         post("/postEndpoint") {
+            delay(1000)
             call.respond("Post body successfully processed!")
         }
 

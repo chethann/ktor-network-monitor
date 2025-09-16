@@ -23,6 +23,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.chethann.network.monitor.db.NetworkCallEntity
 import kotlinx.coroutines.launch
+import io.github.chethann.network.monitor.view.theme.extendedColors
 
 @Composable
 fun NetworkCallsList(
@@ -136,13 +138,13 @@ fun NetworkCallsList(
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colors.background)
     ) {
         // Fixed Header with Search - stays at top when scrolling
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(MaterialTheme.colors.surface)
                 .padding(16.dp)
         ) {
             // Action buttons row
@@ -155,13 +157,13 @@ fun NetworkCallsList(
                         onClick = { onRefreshClick() },
                         enabled = !isRefreshing,
                         colors = ButtonDefaults.buttonColors(
-                            backgroundColor = if (isRefreshing) Color(0xFF9E9E9E) else Color(0xFF4CAF50)
+                            backgroundColor = if (isRefreshing) MaterialTheme.colors.onSurface.copy(alpha = 0.38f) else MaterialTheme.extendedColors.success
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = if (isRefreshing) "⏳ Refreshing..." else "🔄 Refresh",
-                            color = Color.White
+                            color = MaterialTheme.colors.onPrimary
                         )
                     }
 
@@ -170,11 +172,11 @@ fun NetworkCallsList(
                     Button(
                         onClick = { onClearClick() },
                         colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color(0xFFF44336)
+                            backgroundColor = MaterialTheme.colors.error
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("🗑️ Clear", color = Color.White)
+                        Text("🗑️ Clear", color = MaterialTheme.colors.onError)
                     }
                 }
 
@@ -190,11 +192,11 @@ fun NetworkCallsList(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            backgroundColor = if (isSearchVisible) Color(0xFFFF9800) else Color(0xFF2196F3)
+                            backgroundColor = if (isSearchVisible) MaterialTheme.extendedColors.warning else MaterialTheme.colors.primary
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(if (isSearchVisible) "❌ Close" else "🔍 Search", color = Color.White)
+                        Text(if (isSearchVisible) "❌ Close" else "🔍 Search", color = MaterialTheme.colors.onPrimary)
                     }
                 }
             }
@@ -211,7 +213,7 @@ fun NetworkCallsList(
                         isFilterManagementVisible = !isFilterManagementVisible
                     },
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (filteredEndpoints.isNotEmpty()) Color(0xFF9C27B0) else Color(0xFF795548)
+                        backgroundColor = if (filteredEndpoints.isNotEmpty()) MaterialTheme.colors.secondary else MaterialTheme.colors.primaryVariant
                     ),
                     shape = RoundedCornerShape(6.dp),
                     modifier = Modifier.height(32.dp),
@@ -219,7 +221,7 @@ fun NetworkCallsList(
                 ) {
                     Text(
                         text = if (filteredEndpoints.isNotEmpty()) "🚫 ${filteredEndpoints.size}" else "🚫 Filter",
-                        color = Color.White,
+                        color = MaterialTheme.colors.onPrimary,
                         fontSize = 11.sp
                     )
                 }
@@ -270,7 +272,7 @@ fun NetworkCallsList(
                             ) {
                                 Text(
                                     "Found ${filteredItems.size} results",
-                                    color = Color(0xFF666666),
+                                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                                     fontSize = 12.sp
                                 )
 
@@ -329,19 +331,19 @@ fun NetworkCallsList(
                             }
                         } else if (searchQuery.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "No results found",
-                                color = Color(0xFFFF5722),
-                                fontSize = 12.sp
-                            )
+                                        Text(
+                                            "No results found",
+                                            color = MaterialTheme.colors.error,
+                                            fontSize = 12.sp
+                                        )
                         } else {
                             // Show helpful text when search is open but empty
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "Start typing to search through network calls...",
-                                color = Color(0xFF666666),
-                                fontSize = 12.sp
-                            )
+                                        Text(
+                                            "Start typing to search through network calls...",
+                                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                                            fontSize = 12.sp
+                                        )
                         }
                     }
                 }
@@ -364,7 +366,7 @@ fun NetworkCallsList(
                         ) {
                             Text(
                                 "Filter Management",
-                                color = Color(0xFF333333),
+                                color = MaterialTheme.colors.onSurface,
                                 fontSize = 14.sp
                             )
 
@@ -372,7 +374,7 @@ fun NetworkCallsList(
                             Button(
                                 onClick = { showFilteredAPIs = !showFilteredAPIs },
                                 colors = ButtonDefaults.buttonColors(
-                                    backgroundColor = if (showFilteredAPIs) Color(0xFF4CAF50) else Color(0xFF9E9E9E)
+                                    backgroundColor = if (showFilteredAPIs) MaterialTheme.extendedColors.success else MaterialTheme.colors.onSurface.copy(alpha = 0.4f)
                                 ),
                                 modifier = Modifier.height(32.dp),
                                 contentPadding = PaddingValues(8.dp),
@@ -380,7 +382,7 @@ fun NetworkCallsList(
                             ) {
                                 Text(
                                     if (showFilteredAPIs) "👁️ Show All" else "🙈 Hide Filtered",
-                                    color = Color.White,
+                                    color = MaterialTheme.colors.onPrimary,
                                     fontSize = 10.sp
                                 )
                             }
@@ -393,7 +395,7 @@ fun NetworkCallsList(
                         if (uniqueEndpoints.isNotEmpty()) {
                             Text(
                                 "Available Endpoints (tap to filter):",
-                                color = Color(0xFF666666),
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                                 fontSize = 12.sp
                             )
 
@@ -417,7 +419,7 @@ fun NetworkCallsList(
                                                 }
                                             },
                                             colors = ButtonDefaults.buttonColors(
-                                                backgroundColor = if (isFiltered) Color(0xFFF44336) else Color(0xFF2196F3)
+                                                backgroundColor = if (isFiltered) MaterialTheme.colors.error else MaterialTheme.colors.primary
                                             ),
                                             modifier = Modifier
                                                 .weight(1f)
@@ -427,7 +429,7 @@ fun NetworkCallsList(
                                         ) {
                                             Text(
                                                 text = if (isFiltered) "❌ $endpoint" else "➕ $endpoint",
-                                                color = Color.White,
+                                                color = MaterialTheme.colors.onPrimary,
                                                 fontSize = 10.sp,
                                                 maxLines = 1
                                             )
@@ -447,14 +449,14 @@ fun NetworkCallsList(
                                 Button(
                                     onClick = { filteredEndpoints = emptySet() },
                                     colors = ButtonDefaults.buttonColors(
-                                        backgroundColor = Color(0xFFFF9800)
+                                        backgroundColor = MaterialTheme.extendedColors.warning
                                     ),
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(6.dp)
                                 ) {
                                     Text(
                                         "🗑️ Clear All Filters",
-                                        color = Color.White,
+                                        color = MaterialTheme.colors.onPrimary,
                                         fontSize = 12.sp
                                     )
                                 }
@@ -462,7 +464,7 @@ fun NetworkCallsList(
                         } else {
                             Text(
                                 "No endpoints available to filter",
-                                color = Color(0xFF999999),
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
                                 fontSize = 12.sp
                             )
                         }
@@ -475,7 +477,7 @@ fun NetworkCallsList(
                             }
                             Text(
                                 "Filtering ${filteredEndpoints.size} endpoint(s), hiding $filteredCount API call(s)",
-                                color = Color(0xFF666666),
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                                 fontSize = 11.sp
                             )
                         }
@@ -494,10 +496,10 @@ fun NetworkCallsList(
                 val errorCount = filteredItems.count { !it.isSuccess && !it.inProgress }
                 val inProgressCount = filteredItems.count { it.inProgress }
 
-                StatsChip("📊 Total", totalRequests.toString(), Color(0xFF9E9E9E))
-                StatsChip("✅ Success", successCount.toString(), Color(0xFF4CAF50))
-                StatsChip("❌ Error", errorCount.toString(), Color(0xFFF44336))
-                StatsChip("🔄 Progress", inProgressCount.toString(), Color(0xFFFF9800))
+                StatsChip("📊 Total", totalRequests.toString(), MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                StatsChip("✅ Success", successCount.toString(), MaterialTheme.extendedColors.success)
+                StatsChip("❌ Error", errorCount.toString(), MaterialTheme.colors.error)
+                StatsChip("🔄 Progress", inProgressCount.toString(), MaterialTheme.extendedColors.warning)
             }
         }
 
@@ -506,7 +508,7 @@ fun NetworkCallsList(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
+        .background(MaterialTheme.colors.background)
         ) {
             items(filteredItems, key = { it.id }) { item ->
                 EnhancedNetworkCallListItem(

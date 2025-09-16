@@ -21,6 +21,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +43,7 @@ import io.github.chethann.network.monitor.db.NetworkCallEntity
 import io.github.chethann.network.monitor.utils.copyToClipboard
 import io.github.chethann.network.monitor.utils.toCurlString
 import io.github.chethann.network.monitor.view.CollapsibleJsonViewer
+import io.github.chethann.network.monitor.view.theme.extendedColors
 import kotlinx.coroutines.launch
 
 // Data class for search results
@@ -81,21 +83,21 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
             .joinToString("\n")
             .trim()
     }
-    // Define colors for different sections
-    val requestColor = Color(0xFF4CAF50)     // Green for request data
-    val responseColor = Color(0xFF9C27B0)    // Purple for response data
-    val urlColor = Color(0xFF607D8B)         // Blue-grey for URL
-    val methodColor = Color(0xFF795548)      // Brown for HTTP method
-    val summaryColor = Color(0xFF9E9E9E)     // Grey for summary
+    // Themed semantic colors
+    val requestColor = MaterialTheme.extendedColors.success
+    val responseColor = MaterialTheme.colors.secondary
+    val urlColor = MaterialTheme.colors.primaryVariant
+    val methodColor = MaterialTheme.colors.primary
+    val summaryColor = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
 
     // Status code colors based on response type
     val statusColor = when {
-        item.status == null -> Color(0xFF757575)  // Grey for unknown
-        item.status in 200..299 -> Color(0xFF4CAF50)  // Green for success
-        item.status in 300..399 -> Color(0xFF2196F3)  // Blue for redirect
-        item.status in 400..499 -> Color(0xFFFF9800)  // Orange for client error
-        item.status >= 500 -> Color(0xFFF44336)       // Red for server error
-        else -> Color(0xFF757575)  // Grey for other
+        item.status == null -> MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+        item.status in 200..299 -> MaterialTheme.extendedColors.success
+        item.status in 300..399 -> MaterialTheme.extendedColors.info
+        item.status in 400..499 -> MaterialTheme.extendedColors.warning
+        item.status!! >= 500 -> MaterialTheme.colors.error
+        else -> MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
     }
 
     // Create searchable sections with their content
@@ -166,8 +168,8 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
     }
 
     // Helper function to determine highlight color based on focus
-    val focusedHighlightColor = Color(0xFFFF5722) // Orange for current focused match
-    val regularHighlightColor = Color(0xFFFFEB3B) // Yellow for other matches
+    val focusedHighlightColor = MaterialTheme.extendedColors.focusHighlight
+    val regularHighlightColor = MaterialTheme.extendedColors.highlight
 
     fun getHighlightColorForSection(sectionIndex: Int): Color {
         if (searchResults.isEmpty() || currentSearchIndex < 0 || currentSearchIndex >= searchResults.size) {
@@ -177,7 +179,7 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
         return if (sectionIndex == currentResultSectionIndex) focusedHighlightColor else regularHighlightColor
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFFAFAFA))
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)
         .statusBarsPadding()
         .navigationBarsPadding()) {
 
@@ -185,27 +187,25 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+        .background(MaterialTheme.colors.surface)
                 .padding(16.dp)
         ) {
             // Action buttons row
             Row {
                 Button(
                     onClick = onBackPress,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF607D8B))
+                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primaryVariant)
                 ) {
-                    Text("← Back", color = Color.White)
+                    Text("← Back", color = MaterialTheme.colors.onPrimary)
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Button(
-                    onClick = {
-                        copyToClipboard(item.toCurlString())
-                    },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50))
+                    onClick = { copyToClipboard(item.toCurlString()) },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.extendedColors.success)
                 ) {
-                    Text("📋 Copy Curl", color = Color.White)
+                    Text("📋 Copy Curl", color = MaterialTheme.colors.onPrimary)
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -220,10 +220,10 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (isSearchVisible) Color(0xFFFF9800) else Color(0xFF2196F3)
+                        backgroundColor = if (isSearchVisible) MaterialTheme.extendedColors.warning else MaterialTheme.colors.primary
                     )
                 ) {
-                    Text(if (isSearchVisible) "❌ Close" else "🔍 Search", color = Color.White)
+                    Text(if (isSearchVisible) "❌ Close" else "🔍 Search", color = MaterialTheme.colors.onPrimary)
                 }
             }
 
@@ -234,7 +234,8 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = 2.dp,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    backgroundColor = MaterialTheme.colors.surface
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -333,18 +334,18 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                             }
                         } else if (searchQuery.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "No results found",
-                                color = Color(0xFFFF5722),
-                                fontSize = 12.sp
-                            )
+                                Text(
+                                    "No results found",
+                                    color = MaterialTheme.colors.error,
+                                    fontSize = 12.sp
+                                )
                         } else {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "Start typing to search through network call details...",
-                                color = Color(0xFF666666),
-                                fontSize = 12.sp
-                            )
+                                Text(
+                                    "Start typing to search through network call details...",
+                                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                                    fontSize = 12.sp
+                                )
                         }
                     }
                 }
@@ -369,7 +370,7 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         text = item.fullUrl,
                         searchQuery = searchQuery,
                         highlightColor = regularHighlightColor,
-                        textColor = Color(0xFF1976D2),
+                        textColor = MaterialTheme.colors.primary,
                         modifier = Modifier.padding(8.dp).background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)).padding(8.dp)
                     )
                 }
@@ -388,7 +389,7 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         text = item.httpMethod,
                         searchQuery = searchQuery,
                         highlightColor = regularHighlightColor,
-                        textColor = Color.White,
+                        textColor = MaterialTheme.colors.onPrimary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(8.dp)
                             .background(methodColor, RoundedCornerShape(4.dp))
@@ -410,9 +411,9 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         text = "${item.requestHeaders}",
                         searchQuery = searchQuery,
                         highlightColor = regularHighlightColor,
-                        textColor = Color(0xFF2E7D32),
+                        textColor = requestColor.darken(0.2f),
                         modifier = Modifier.padding(8.dp)
-                            .background(Color(0xFFE8F5E8), RoundedCornerShape(4.dp))
+                            .background(requestColor.copy(alpha = 0.08f), RoundedCornerShape(4.dp))
                             .padding(8.dp)
                     )
                 }
@@ -453,7 +454,7 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         searchQuery = searchQuery,
                         highlightColor = regularHighlightColor,
                         modifier = Modifier.padding(8.dp)
-                            .background(Color(0xFFE8F5E8), RoundedCornerShape(4.dp))
+                            .background(requestColor.copy(alpha = 0.08f), RoundedCornerShape(4.dp))
                             .padding(8.dp))
                 }
 
@@ -471,9 +472,9 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                     text = if (item.responseSummary.isNullOrEmpty()) "No summary" else item.responseSummary,
                     searchQuery = searchQuery,
                     highlightColor = regularHighlightColor,
-                    textColor = if (item.responseSummary.isNullOrEmpty()) Color(0xFF999999) else Color(0xFF424242),
+                    textColor = if (item.responseSummary.isNullOrEmpty()) MaterialTheme.colors.onSurface.copy(alpha = 0.4f) else MaterialTheme.colors.onSurface,
                     modifier = Modifier.padding(8.dp)
-                        .background(Color(0xFFF0F0F0), RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colors.onSurface.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
                         .padding(8.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -490,7 +491,7 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                     text = "${item.status ?: "Unknown"}",
                     searchQuery = searchQuery,
                     highlightColor = regularHighlightColor,
-                    textColor = Color.White,
+                    textColor = MaterialTheme.colors.onPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     modifier = Modifier.padding(8.dp)
@@ -512,9 +513,9 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         text = "${item.responseHeaders}",
                         searchQuery = searchQuery,
                         highlightColor = regularHighlightColor,
-                        textColor = Color(0xFF6A1B9A),
+                        textColor = responseColor.darken(0.2f),
                         modifier = Modifier.padding(8.dp)
-                            .background(Color(0xFFF3E5F5), RoundedCornerShape(4.dp))
+                            .background(responseColor.copy(alpha = 0.08f), RoundedCornerShape(4.dp))
                             .padding(8.dp)
                     )
                 }
@@ -555,11 +556,22 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         searchQuery = searchQuery,
                         highlightColor = regularHighlightColor,
                         modifier = Modifier.padding(8.dp)
-                            .background(Color(0xFFF3E5F5), RoundedCornerShape(4.dp))
+                            .background(responseColor.copy(alpha = 0.08f), RoundedCornerShape(4.dp))
                             .padding(8.dp)
                     )
                 }
             }
         }
     }
+}
+
+// Simple utility to darken a color by a given factor (0f..1f)
+private fun Color.darken(factor: Float): Color {
+    val f = 1 - factor.coerceIn(0f, 1f)
+    return Color(
+        red = (red * f),
+        green = (green * f),
+        blue = (blue * f),
+        alpha = alpha
+    )
 }

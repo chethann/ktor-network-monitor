@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.chethann.network.monitor.view.components.HighlightableAnnotatedText
 import io.github.chethann.network.monitor.view.components.HighlightableText
+import io.github.chethann.network.monitor.view.theme.extendedColors
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -42,13 +44,13 @@ data class JsonNode(
 fun CollapsibleJsonViewer(
     jsonContent: String,
     searchQuery: String = "",
-    highlightColor: Color = Color.Yellow,
+    highlightColor: Color? = null,
     modifier: Modifier = Modifier
 ) {
     if (jsonContent.isBlank()) {
         Text(
             text = "No content",
-            color = Color.Gray,
+            color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
             modifier = modifier
         )
@@ -73,20 +75,22 @@ fun CollapsibleJsonViewer(
         }
     }
 
+    val effectiveHighlightColor = highlightColor ?: MaterialTheme.colors.secondary.copy(alpha = 0.35f)
+
     Column(modifier = modifier) {
         if (jsonElement != null) {
             JsonElementComposable(
                 node = JsonNode(value = jsonElement),
                 searchQuery = searchQuery,
-                highlightColor = highlightColor
+                highlightColor = effectiveHighlightColor
             )
         } else {
             // If not valid JSON, show as plain text with better formatting
             HighlightableText(
                 text = formatNonJsonContent(jsonContent),
                 searchQuery = searchQuery,
-                highlightColor = highlightColor,
-                textColor = Color(0xFF34495E),
+                highlightColor = effectiveHighlightColor,
+                textColor = MaterialTheme.colors.onSurface,
                 fontFamily = FontFamily.Monospace,
                 modifier = Modifier
             )
@@ -155,29 +159,27 @@ private fun formatNonJsonContent(content: String): String {
 }
 
 // Get arrow color based on nesting level
-private fun getArrowColor(level: Int): Color {
-    return when (level % 6) {
-        0 -> Color(0xFF2196F3)  // Blue
-        1 -> Color(0xFF4CAF50)  // Green
-        2 -> Color(0xFF9C27B0)  // Purple
-        3 -> Color(0xFFFF9800)  // Orange
-        4 -> Color(0xFFF44336)  // Red
-        5 -> Color(0xFF607D8B)  // Blue Grey
-        else -> Color(0xFF2196F3) // Default Blue
-    }
+@Composable
+private fun getArrowColor(level: Int): Color = when (level % 6) {
+    0 -> MaterialTheme.colors.primary
+    1 -> MaterialTheme.colors.secondary
+    2 -> MaterialTheme.colors.primaryVariant
+    3 -> MaterialTheme.colors.error
+    4 -> MaterialTheme.colors.onSurface.copy(alpha = 0.75f)
+    5 -> MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+    else -> MaterialTheme.colors.primary
 }
 
-// Get key color based on nesting level (slightly darker than arrow color)
-private fun getKeyColor(level: Int): Color {
-    return when (level % 6) {
-        0 -> Color(0xFF1976D2)  // Dark Blue
-        1 -> Color(0xFF388E3C)  // Dark Green
-        2 -> Color(0xFF7B1FA2)  // Dark Purple
-        3 -> Color(0xFFF57C00)  // Dark Orange
-        4 -> Color(0xFFD32F2F)  // Dark Red
-        5 -> Color(0xFF455A64)  // Dark Blue Grey
-        else -> Color(0xFF1976D2) // Default Dark Blue
-    }
+// Get key color based on nesting level
+@Composable
+private fun getKeyColor(level: Int): Color = when (level % 6) {
+    0 -> MaterialTheme.colors.primary
+    1 -> MaterialTheme.colors.secondary
+    2 -> MaterialTheme.colors.primaryVariant
+    3 -> MaterialTheme.colors.error
+    4 -> MaterialTheme.colors.onSurface.copy(alpha = 0.75f)
+    5 -> MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+    else -> MaterialTheme.colors.primary
 }
 
 @Composable
@@ -188,36 +190,29 @@ private fun JsonElementComposable(
     isExpanded: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(isExpanded) }
-
     when (val element = node.value) {
-        is JsonObject -> {
-            JsonObjectComposable(
-                node = node,
-                element = element,
-                expanded = expanded,
-                onToggle = { expanded = !expanded },
-                searchQuery = searchQuery,
-                highlightColor = highlightColor
-            )
-        }
-        is JsonArray -> {
-            JsonArrayComposable(
-                node = node,
-                element = element,
-                expanded = expanded,
-                onToggle = { expanded = !expanded },
-                searchQuery = searchQuery,
-                highlightColor = highlightColor
-            )
-        }
-        is JsonPrimitive -> {
-            JsonPrimitiveComposable(
-                node = node,
-                element = element,
-                searchQuery = searchQuery,
-                highlightColor = highlightColor
-            )
-        }
+        is JsonObject -> JsonObjectComposable(
+            node = node,
+            element = element,
+            expanded = expanded,
+            onToggle = { expanded = !expanded },
+            searchQuery = searchQuery,
+            highlightColor = highlightColor
+        )
+        is JsonArray -> JsonArrayComposable(
+            node = node,
+            element = element,
+            expanded = expanded,
+            onToggle = { expanded = !expanded },
+            searchQuery = searchQuery,
+            highlightColor = highlightColor
+        )
+        is JsonPrimitive -> JsonPrimitiveComposable(
+            node = node,
+            element = element,
+            searchQuery = searchQuery,
+            highlightColor = highlightColor
+        )
     }
 }
 
@@ -256,11 +251,11 @@ private fun JsonObjectComposable(
                     append(keyText)
                 }
             }
-            withStyle(SpanStyle(color = Color(0xFF424242))) {
+            withStyle(SpanStyle(color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f))) {
                 append("{")
             }
             if (!expanded) {
-                withStyle(SpanStyle(color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)) {
+                withStyle(SpanStyle(color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f), fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)) {
                     append(" ... } (${element.size} ${if (element.size == 1) "item" else "items"})")
                 }
             }
@@ -296,7 +291,7 @@ private fun JsonObjectComposable(
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = "${"  ".repeat(node.level)}}${if (!node.isLast) "," else ""}",
-                    color = Color(0xFF424242),
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f),
                     fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp
                 )
@@ -340,11 +335,11 @@ private fun JsonArrayComposable(
                     append(keyText)
                 }
             }
-            withStyle(SpanStyle(color = Color(0xFF424242))) {
+            withStyle(SpanStyle(color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f))) {
                 append("[")
             }
             if (!expanded) {
-                withStyle(SpanStyle(color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)) {
+                withStyle(SpanStyle(color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f), fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)) {
                     append(" ... ] (${element.size} ${if (element.size == 1) "item" else "items"})")
                 }
             }
@@ -365,7 +360,6 @@ private fun JsonArrayComposable(
                 val isLast = index == element.size - 1
                 JsonElementComposable(
                     node = JsonNode(
-                        key = null, // Arrays don't have keys for elements
                         value = value,
                         level = node.level + 1,
                         isLast = isLast
@@ -380,7 +374,7 @@ private fun JsonArrayComposable(
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = "${"  ".repeat(node.level)}]${if (!node.isLast) "," else ""}",
-                    color = Color(0xFF424242),
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f),
                     fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp
                 )
@@ -412,10 +406,10 @@ private fun JsonPrimitiveComposable(
 
             // Color code different value types
             val (value, color) = when {
-                element.isString -> "\"${element.content}\"" to Color(0xFF4CAF50) // Green for strings
-                element.content == "null" -> "null" to Color(0xFF9E9E9E) // Gray for null
-                element.content == "true" || element.content == "false" -> element.content to Color(0xFF2196F3) // Blue for booleans
-                else -> element.content to Color(0xFFFF9800) // Orange for numbers
+                element.isString -> "\"${element.content}\"" to MaterialTheme.extendedColors.success
+                element.content == "null" -> "null" to MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                element.content == "true" || element.content == "false" -> element.content to MaterialTheme.extendedColors.info
+                else -> element.content to MaterialTheme.extendedColors.warning
             }
 
             withStyle(SpanStyle(color = color)) {
@@ -423,7 +417,7 @@ private fun JsonPrimitiveComposable(
             }
 
             if (!node.isLast) {
-                withStyle(SpanStyle(color = Color(0xFF424242))) {
+                withStyle(SpanStyle(color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f))) {
                     append(",")
                 }
             }
@@ -438,3 +432,4 @@ private fun JsonPrimitiveComposable(
         )
     }
 }
+
