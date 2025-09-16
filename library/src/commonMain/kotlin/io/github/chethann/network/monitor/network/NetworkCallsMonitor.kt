@@ -43,10 +43,25 @@ import kotlin.uuid.Uuid
 private val UUID_KEY = AttributeKey<String>("NETWORK_UUID_KEY")
 
 @OptIn(ExperimentalUuidApi::class)
-class NetworkCallsMonitor private constructor() {
+class NetworkCallsMonitor private constructor(
+    private val filteredEndpoints: List<String> = emptyList()
+) {
 
     class Config {
-
+        /**
+         * List of endpoint patterns to filter out from monitoring.
+         * Supports exact matches and wildcard patterns with '*'.
+         * Examples:
+         * - "/api/health" (exact match)
+         * - "/api/internal/*" (wildcard pattern)
+         * - "*/metrics" (wildcard pattern)
+         *
+         * Default: empty list (no filtering)
+         */
+        var filteredEndpoints: List<String> = emptyList()
+            set(value) {
+                field = value
+            }
     }
 
     companion object Plugin : HttpClientPlugin<Config, NetworkCallsMonitor> {
@@ -57,7 +72,7 @@ class NetworkCallsMonitor private constructor() {
 
         override fun prepare(block: Config.() -> Unit): NetworkCallsMonitor {
             val config = Config().apply(block)
-            return NetworkCallsMonitor()
+            return NetworkCallsMonitor(config.filteredEndpoints)
         }
 
         override fun install(plugin: NetworkCallsMonitor, scope: HttpClient) {
@@ -87,6 +102,15 @@ class NetworkCallsMonitor private constructor() {
     }
 
     private suspend fun logRequest(request: HttpRequestBuilder): Pair<OutgoingContent?, String> {
+        // Check if this endpoint should be filtered out
+        val requestPath = request.url.encodedPath
+        val fullUrl = request.url.toString()
+
+        if (shouldFilterEndpoint(requestPath, fullUrl)) {
+            // Return early without logging if endpoint is filtered
+            return Pair(null, "")
+        }
+
         val content = request.body as OutgoingContent
 
         val message = buildString {
@@ -293,6 +317,49 @@ class NetworkCallsMonitor private constructor() {
             return "$sizeInBytes Bytes"
         }
         return "$sizeInKB KB"
+    }
+
+    /**
+     * Checks if an endpoint should be filtered out based on the configured filter patterns.
+     * Supports exact matches and wildcard patterns with '*'.
+     */
+    private fun shouldFilterEndpoint(requestPath: String, fullUrl: String): Boolean {
+        return filteredEndpoints.any { pattern ->
+            matchesPattern(pattern, requestPath) || matchesPattern(pattern, fullUrl)
+        }
+    }
+
+    /**
+     * Matches a URL path or full URL against a pattern that may contain wildcards (*).
+     *
+     *             "/api/health",           // Exact match
+     *             "/api/internal/*",       // Filter all internal APIs
+     *             "*/metrics",             // Filter metrics endpoints
+     *             "https://example.com/ping" // Filter specific full URLs
+     */
+    private fun matchesPattern(pattern: String, url: String): Boolean {
+        if (pattern == url) return true // Exact match
+
+        if (!pattern.contains("*")) return false // No wildcard, already checked exact match
+
+        // Convert pattern to regex by escaping special regex chars and replacing * with .*
+        val regexPattern = pattern
+            .replace("\\", "\\\\")
+            .replace(".", "\\.")
+            .replace("+", "\\+")
+            .replace("?", "\\?")
+            .replace("^", "\\^")
+            .replace("$", "\\$")
+            .replace("(", "\\(")
+            .replace(")", "\\)")
+            .replace("[", "\\[")
+            .replace("]", "\\]")
+            .replace("{", "\\{")
+            .replace("}", "\\}")
+            .replace("|", "\\|")
+            .replace("*", ".*")
+
+        return Regex("^$regexPattern$").matches(url)
     }
 
     // This function returns a copy of original response as reading of response is allowed only once
