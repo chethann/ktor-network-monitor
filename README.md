@@ -58,6 +58,50 @@ Text("Status", color = extended.success)
 
 If you want to provide a custom `Colors` palette you can pass it to `NetworkMonitorTheme(colors = myColors)`.
 
+#### Developer / Terminal Style
+You can opt into a terminal-inspired dark palette (neon green, cyan, amber accents) by setting the `style` parameter:
+
+```kotlin
+import io.github.chethann.network.monitor.view.theme.NetworkMonitorTheme
+import io.github.chethann.network.monitor.view.theme.NetworkMonitorThemeStyle
+
+@Composable
+fun TerminalStyledMonitor(calls: List<NetworkCallEntity>) {
+    NetworkMonitorTheme(
+        style = NetworkMonitorThemeStyle.Terminal, // Forces terminal palette (dark only for now)
+        darkTheme = true                           // Ensure dark surfaces (optional if system is already dark)
+    ) {
+        NetworkCallsListFullView(
+            networkCalls = calls,
+            lazyListState = rememberLazyListState(),
+            onClearClick = { /* clear */ },
+            onSearchClick = { /* search */ },
+            onRefreshClick = { /* refresh */ }
+        )
+    }
+}
+```
+
+`NetworkMonitorThemeStyle.Terminal` provides:
+- Dark editor-like background/surface (`#1E1F22` / `#26282B`)
+- Accent primary cyan, amber secondary
+- Neon success, bright warning, info cyan
+- Console-like code blocks and subdued amber text highlight
+
+Fallback style is `NetworkMonitorThemeStyle.Default` if you omit the parameter.
+
+#### Built‑in Theme Toggle
+The provided `NetworkCallsView()` now includes a simple top bar with buttons to switch:
+- Light / Dark mode
+- Default / Terminal style
+
+If you embed lower‑level composables directly, you can replicate this by holding state:
+```kotlin
+var dark by remember { mutableStateOf(true) }
+var style by remember { mutableStateOf(NetworkMonitorThemeStyle.Default) }
+NetworkMonitorTheme(darkTheme = dark, style = style) { /* content */ }
+```
+
 Adding the plugin to Ktor
 ```kotlin
 HttpClient {

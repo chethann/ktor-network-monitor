@@ -22,5 +22,5 @@ internal fun Appendable.logHeader(key: String, value: String) {
 internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {
     readRemaining().readText(charset = charset)
 } catch (cause: Throwable) {
-    null
+    "Error parsing the data stream: ${cause.message}"
 }

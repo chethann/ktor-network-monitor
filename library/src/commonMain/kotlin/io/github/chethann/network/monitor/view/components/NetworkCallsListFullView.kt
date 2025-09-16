@@ -23,7 +23,8 @@ fun NetworkCallsListFullView(
     onClearClick: () -> Unit,
     onSearchClick: (String) -> Unit,
     onRefreshClick: () -> Unit,
-    isRefreshing: Boolean = false
+    isRefreshing: Boolean = false,
+    showHeaderControls: Boolean = true
 ) {
     val navController = rememberNavController()
 
@@ -37,9 +38,6 @@ fun NetworkCallsListFullView(
         navController = navController,
         startDestination = "network_calls_list",
         modifier = Modifier.onKeyEvent {
-            if (it.key == Key.A && it.type == KeyEventType.KeyDown) {
-                println("A pressed")
-            }
             return@onKeyEvent true
         }
     ) {
@@ -54,7 +52,8 @@ fun NetworkCallsListFullView(
                 onClearClick = onClearClick,
                 onSearchClick = onSearchClick,
                 onRefreshClick = onRefreshClick,
-                isRefreshing = isRefreshing
+                isRefreshing = isRefreshing,
+                showHeaderControls = showHeaderControls
             )
         }
 

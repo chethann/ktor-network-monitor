@@ -179,9 +179,7 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
         return if (sectionIndex == currentResultSectionIndex) focusedHighlightColor else regularHighlightColor
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)
-        .statusBarsPadding()
-        .navigationBarsPadding()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
 
         // Top bar with action buttons and search - Fixed at top
         Column(
@@ -371,7 +369,9 @@ fun NetworkCallDetails(item: NetworkCallEntity, onBackPress: () -> Unit) {
                         searchQuery = searchQuery,
                         highlightColor = regularHighlightColor,
                         textColor = MaterialTheme.colors.primary,
-                        modifier = Modifier.padding(8.dp).background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)).padding(8.dp)
+                        modifier = Modifier.padding(8.dp)
+                            .background(MaterialTheme.extendedColors.codeBackground, RoundedCornerShape(4.dp))
+                            .padding(8.dp)
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))

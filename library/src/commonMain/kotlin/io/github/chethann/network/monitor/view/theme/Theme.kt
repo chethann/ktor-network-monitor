@@ -104,16 +104,72 @@ object NetworkMonitorThemeDefaults {
         @Composable get() = LocalExtendedColors.current
 }
 
+/** Visual styling modes for the monitor. */
+enum class NetworkMonitorThemeStyle { Default, Terminal }
+
+// Terminal / developer-console inspired palette (monokai-ish / solarized hybrid)
+private val TerminalPrimary = Color(0xFF0DB9D7)      // Cyan accent
+private val TerminalPrimaryVariant = Color(0xFF046E82)
+private val TerminalSecondary = Color(0xFFFFC857)    // Soft amber
+private val TerminalError = Color(0xFFFF5555)        // Vibrant red
+private val TerminalWarning = Color(0xFFFFB86C)      // Orange
+private val TerminalSuccess = Color(0xFF50FA7B)      // Neon green
+private val TerminalInfo = Color(0xFF8BE9FD)         // Light cyan
+private val TerminalBackgroundDark = Color(0xFF1E1F22) // Editor gutter dark
+private val TerminalSurfaceDark = Color(0xFF26282B)
+private val TerminalOnDark = Color(0xFFE6E8EA)
+private val TerminalCodeBlock = Color(0xFF2D3033)
+private val TerminalDivider = Color(0xFF3A3D41)
+
+private val TerminalDarkMaterial = darkColors(
+    primary = TerminalPrimary,
+    primaryVariant = TerminalPrimaryVariant,
+    secondary = TerminalSecondary,
+    background = TerminalBackgroundDark,
+    surface = TerminalSurfaceDark,
+    error = TerminalError,
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onBackground = TerminalOnDark,
+    onSurface = TerminalOnDark,
+    onError = Color.Black
+)
+
+private val TerminalDarkExtended = ExtendedColors(
+    success = TerminalSuccess,
+    warning = TerminalWarning,
+    info = TerminalInfo,
+    pending = TerminalWarning.copy(alpha = 0.85f),
+    chipBackground = Color(0xFF34373B),
+    chipContent = TerminalOnDark,
+    highlight = Color(0xFF3D2E00),        // subdued amber background for highlight
+    focusHighlight = TerminalSecondary,   // strong focus highlight
+    codeBackground = TerminalCodeBlock,
+    divider = TerminalDivider
+)
+
 @Composable
 fun NetworkMonitorTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     colors: Colors? = null,
+    style: NetworkMonitorThemeStyle = NetworkMonitorThemeStyle.Default,
     content: @Composable () -> Unit
 ) {
-    val materialColors = colors ?: if (darkTheme) DarkColorPalette else LightColorPalette
-    val extended = if (darkTheme) DarkExtended else LightExtended
+    val (materialColors, extended) = remember(darkTheme, style, colors) {
+        when (style) {
+            NetworkMonitorThemeStyle.Terminal -> {
+                val mc = TerminalDarkMaterial // only dark variant for now
+                mc to TerminalDarkExtended
+            }
+            NetworkMonitorThemeStyle.Default -> {
+                val mc = colors ?: if (darkTheme) DarkColorPalette else LightColorPalette
+                val ext = if (darkTheme) DarkExtended else LightExtended
+                mc to ext
+            }
+        }
+    }
 
-    val rememberedExtended = remember(darkTheme) { extended }
+    val rememberedExtended = remember(materialColors, extended) { extended }
 
     androidx.compose.runtime.CompositionLocalProvider(
         LocalExtendedColors provides rememberedExtended

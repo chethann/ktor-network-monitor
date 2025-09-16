@@ -22,7 +22,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.chethann",
         artifactId = "network-monitor",
-        version = "0.0.1-alpha4"
+        version = "1.0.0-alpha2"
     )
 
     pom {

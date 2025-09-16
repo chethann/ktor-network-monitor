@@ -48,7 +48,8 @@ fun NetworkCallsList(
     onClearClick: () -> Unit,
     onSearchClick: (String) -> Unit,
     onRefreshClick: () -> Unit,
-    isRefreshing: Boolean = false
+    isRefreshing: Boolean = false,
+    showHeaderControls: Boolean = true
 ) {
     // Search state - modified to make search sticky
     var searchQuery by remember { mutableStateOf("") }
@@ -136,8 +137,6 @@ fun NetworkCallsList(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
             .background(MaterialTheme.colors.background)
     ) {
         // Fixed Header with Search - stays at top when scrolling
@@ -147,8 +146,8 @@ fun NetworkCallsList(
                 .background(MaterialTheme.colors.surface)
                 .padding(16.dp)
         ) {
-            // Action buttons row
-            Row(
+            // Action buttons row (hidden when header controls collapsed)
+            if (showHeaderControls) Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -202,8 +201,9 @@ fun NetworkCallsList(
             }
 
             // Second row for Filter button - mobile friendly
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
+            if (showHeaderControls) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
@@ -224,6 +224,7 @@ fun NetworkCallsList(
                         color = MaterialTheme.colors.onPrimary,
                         fontSize = 11.sp
                     )
+                }
                 }
             }
 
@@ -350,7 +351,7 @@ fun NetworkCallsList(
             }
 
             // Filter Management UI (visible when filter management is active)
-            if (isFilterManagementVisible) {
+            if (isFilterManagementVisible && showHeaderControls) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Card(
@@ -486,8 +487,9 @@ fun NetworkCallsList(
             }
 
             // Stats summary
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
+            if (showHeaderControls) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
@@ -496,10 +498,11 @@ fun NetworkCallsList(
                 val errorCount = filteredItems.count { !it.isSuccess && !it.inProgress }
                 val inProgressCount = filteredItems.count { it.inProgress }
 
-                StatsChip("📊 Total", totalRequests.toString(), MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
-                StatsChip("✅ Success", successCount.toString(), MaterialTheme.extendedColors.success)
-                StatsChip("❌ Error", errorCount.toString(), MaterialTheme.colors.error)
-                StatsChip("🔄 Progress", inProgressCount.toString(), MaterialTheme.extendedColors.warning)
+                    StatsChip("📊 Total", totalRequests.toString(), MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                    StatsChip("✅ Success", successCount.toString(), MaterialTheme.extendedColors.success)
+                    StatsChip("❌ Error", errorCount.toString(), MaterialTheme.colors.error)
+                    StatsChip("🔄 Progress", inProgressCount.toString(), MaterialTheme.extendedColors.warning)
+                }
             }
         }
 
