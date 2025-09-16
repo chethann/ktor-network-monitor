@@ -22,10 +22,19 @@ fun NetworkCallsView() {
     var isRefreshing by remember { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
 
+    val dbInstance = remember {  DBInstanceProvider.getNetworkMonitorDB() }
+    val ioDispatcher = remember { CoroutineScope(Dispatchers.IO) }
+
     // Load network calls on composition
     LaunchedEffect(Unit) {
-        loadNetworkCalls { calls ->
-            networkCalls = calls
+        dbInstance.getNetworkCallDao().getAllNetworkCallsFlow().collect {
+            val didSizeChange = it.size != networkCalls.size
+            val isScrolled = lazyListState.firstVisibleItemIndex != 0
+            networkCalls = it
+            if (!isScrolled && didSizeChange) { // New insertions should scroll the list and user has not scrolled the list, scroll to top
+                delay(100)
+                lazyListState.scrollToItem(0)
+            }
         }
     }
 
